@@ -1,0 +1,252 @@
+
+$redColor: #e81829;
+
+
+.simu-datepickter-mask{
+    display: none;
+    position: fixed;
+    overflow: hidden;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 0;
+    z-index: 1000;
+    background: transparent;
+}
+
+// 私募日历定制
+.simu-datepickter{
+    display: none;
+    width: 660px;
+    height: 305px;
+    position: absolute;
+    left: 0;
+    top: 50px;
+    z-index: 1001;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    overflow: hidden;
+    background: #fff;
+    -ms-box-shadow: 0 0 10px #e8e8e8;
+    box-shadow: 0 0 10px #e8e8e8;
+    font-family: '微软雅黑';
+    font-size: 12px;
+
+
+    $bHei: 305px - 45px;
+    $itemWidth: 180px;
+    $itemMargin: 24px;
+
+    &-body{
+        -ms-box-sizing: border-box;
+        -webkit-box-sizing: border-box;
+        box-sizing: border-box;
+
+        height: $bHei;
+        padding-top: 20px;
+        position: relative;
+    }
+
+    ul{
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .datepickter{
+        // 箭头
+        &-arrow{
+            position: absolute;
+            top: 20px;
+            width: 22px;
+            height: 22px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            text-align: center;
+            cursor: pointer;
+            z-index: 10;
+
+            &:after{
+                content: '';
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                left: 0;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                margin: auto;
+                border-left: 1px solid #bbb;
+                border-top: 1px solid #bbb;
+            }
+
+            &:active{
+                background-color: #fafafa;
+            }
+
+            &.arrow-left{
+                left: 15px;
+                &:after{                    
+                    -ms-transform: translate(3px, 0) rotate(-45deg);
+                    -webkit-transform: translate(3px, 0) rotate(-45deg);
+                    transform: translate(3px, 0) rotate(-45deg);
+                }
+            }
+            &.arrow-right{
+                right: 15px;
+                &:after{
+                    border: none;
+                    border-right: 1px solid #bbb;
+                    border-top: 1px solid #bbb;
+                    -ms-transform: translate(-3px, 0) rotate(45deg);
+                    -webkit-transform: translate(-3px, 0) rotate(45deg);
+                    transform: translate(-3px, 0) rotate(45deg);
+                }
+            }
+        }
+
+        // 面板
+        &-panel{
+            height: $bHei - 20px;
+            width: ($itemWidth + $itemMargin) * 3;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+        }
+
+        &-list{
+            position: absolute;
+            left: 0;
+            top: 0;
+            overflow: hidden;
+            -webkit-transition: transform 0.2s;
+            -ms-transition: transform 0.2s;
+            transition: transform 0.2s;
+        }
+
+        // 单个面板
+        &-item{
+            float: left;
+            width: $itemWidth;
+            height: 100%;
+            margin: 0 $itemMargin / 2;
+            
+            li,
+            .datepickter-week span{
+                float: left;
+                height: 27px;
+                line-height: 27px;
+                width: $itemWidth / 7;
+                text-align: center;
+            }
+        }
+
+        &-title{
+            font-size: 12px;
+            height: 22px;
+            line-height: 22px;
+            margin: 0;
+            margin-bottom: 15px;
+            color: #333333;
+            text-align: center;
+        }
+        
+
+        &-week{
+            overflow: hidden;
+            background: #f6f6f6;
+            color: #333;
+            border-radius: 3px;
+        }
+
+        &-days{
+            overflow: hidden;
+            color: #666666;
+
+            li{
+                height: 22px;
+                line-height: 22px;
+                border-radius: 3px;
+                margin-top: 2px;
+                margin-bottom: 2px;
+                cursor: pointer;
+
+                &:hover{
+                    background-color: rgba($redColor, 0.1);
+                }                
+
+                &.datepickter-selected{
+                    background: $redColor;
+                    color: #fff;
+                }
+
+                &.datepickter-selecting{
+                    background: rgba($redColor, 0.1);
+                    color: #666;
+                }
+
+                &.datepickter-cur{
+                    outline: 1px dashed rgba($redColor, 0.3);
+                }
+            }
+        }
+
+        // 底部元素
+        &-input,
+        &-btn{
+            font-size: 12px;
+            height: 25px;
+            line-height: 24px;
+            border: 1px solid #cccccc;
+            background: #fefefe;
+            color: #666;
+            border-radius: 3px;
+            text-align: center;      
+            outline: none;
+            padding: 0;
+        }
+        
+        &-input{
+            width: 89px;  
+        }
+        
+        &-btns{
+            float: right;            
+        }
+        
+        &-btn{    
+            width: 60px;
+            margin-left: 10px;
+            cursor: pointer;
+
+            &.btn-sure{
+                background: $redColor;
+                border-color: $redColor;
+                color: #fff;
+                              
+                &:active{
+                    background-color: rgba($redColor, 0.9);
+                }
+            }
+
+            &.btn-cancel{                
+                &:active{
+                    background-color: #fafafa;
+                }
+            }
+        }
+    }
+
+    &-footer{
+        padding: 9px 20px 9px 30px;
+        border-top: 1px solid #dadada;
+        background: #f8f8f8;
+        color: #666;    
+                        
+        span{
+            margin: 0 5px;
+        }
+    }
+}
+
