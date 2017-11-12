@@ -35,36 +35,36 @@
 
 function SiMuDatePickter( opt ){
     this.maintemplate = 
-        '<div class="simu-datepickter-body">\
-            <a class="datepickter-arrow arrow-left" data-type="left"></a>\
-            <a class="datepickter-arrow arrow-right" data-type="right"></a>\
-            <div class="datepickter-panel">\
-                <div id="{{listid}}" class="datepickter-list">\
-                    {{items}}\
-                </div>\
-            </div>\
-        </div>\
-        <div class="simu-datepickter-footer">\
-            <input readonly id="{{startid}}" class="datepickter-input start-input" value="{{startdate}}">\
-            <span>-</span>\
-            <input readonly id="{{endid}}" class="datepickter-input end-input" value="{{enddate}}">\
-            <div class="datepickter-btns">\
-                <button class="datepickter-btn btn-sure" data-type="sure">确定</button>\
-                <button class="datepickter-btn btn-cancel" data-type="cancel">取消</button>\
-            </div>\
-        </div>';
+        '<div class="simu-datepickter-body">'+
+            '<a class="datepickter-arrow arrow-left" data-type="left"></a>'+
+            '<a class="datepickter-arrow arrow-right" data-type="right"></a>'+
+            '<div class="datepickter-panel">'+
+                '<div id="{{listid}}" class="datepickter-list" style="left: 0;">'+
+                    '{{items}}'+
+                '</div>'+
+            '</div>'+
+        '</div>'+
+        '<div class="simu-datepickter-footer">'+
+            '<input readonly id="{{startid}}" class="datepickter-input start-input" value="{{startdate}}">'+
+            '<span>-</span>'+
+            '<input readonly id="{{endid}}" class="datepickter-input end-input" value="{{enddate}}">'+
+            '<div class="datepickter-btns">'+
+                '<button class="datepickter-btn btn-sure" data-type="sure">确定</button>'+
+                '<button class="datepickter-btn btn-cancel" data-type="cancel">取消</button>'+
+            '</div>'+
+        '</div>';
 
     this.itemstemplate = 
         // '<div class="datepickter-item">\
-        '<h2 class="datepickter-title">\
-            {{date}}\
-        </h2>\
-        <div class="datepickter-week">\
-            {{week}}\
-        </div>\
-        <ul class="datepickter-days">\
-            {{days}}\
-        </ul>'
+        '<h2 class="datepickter-title">'+
+            '{{date}}'+
+        '</h2>'+
+        '<div class="datepickter-week">'+
+            '{{week}}'+
+        '</div>'+
+        '<ul class="datepickter-days">'+
+            '{{days}}'+
+        '</ul>'
         // </div>'
     
     this.id = 'simudate_' + random()
@@ -163,8 +163,14 @@ SiMuDatePickter.prototype = {
 
         for( var i=0; i<list.childNodes.length; i++ ){
             var item = list.childNodes[i]
+            
             if(item.tagName === 'DIV'){
-                item.style = 'width:'+o.itemWidth+'px; margin: 0 '+o.itemMargin+'px';
+                // ie 9-不支持这种写法
+                // item.style = 'width:'+o.itemWidth+'px; margin: 0 '+o.itemMargin+'px';
+
+                // item.style.cssText 或者 分开写
+                item.style.width = o.itemWidth + 'px'
+                item.style.margin = '0 ' + o.itemMargin + 'px'
             }
         }
     },
@@ -279,7 +285,7 @@ SiMuDatePickter.prototype = {
             this.clickcount = 0
         }
         
-        toggleClass( target, 'datepickter-selected' )
+        addClass( target, 'datepickter-selected' )
     },
 
 
@@ -323,9 +329,10 @@ SiMuDatePickter.prototype = {
     // 
     onMoveLeft: function(){
         var list = query( this.listid )
+        
         var cur = parseInt( list.style.left ) || 0
         var isCreate = false
-
+            
         // 检测是否需要新增日历版块
         var maxLeft = -(this.options.itemCount - 3) * this.moveWidth  
         if( cur === 0 || cur === maxLeft ){
@@ -393,7 +400,7 @@ SiMuDatePickter.prototype = {
         direction > 0 ?
             list.appendChild( item ):            
             list.insertBefore( item, list.firstChild )
-
+            
         this.options.itemCount ++
         this.resize()
     },
@@ -520,7 +527,7 @@ SiMuDatePickter.prototype = {
             var item = items[i]
             var time = item.getAttribute('data-time') - 0
 
-            removeClass( items[i], 'datepickter-selecting' )
+            removeClass( item, 'datepickter-selecting' )
             if( time>startTime && time<endTime ){
                 addClass( item, 'datepickter-selecting' )
             }
@@ -668,17 +675,21 @@ function getPos( el ){
 
 
 // 深度拷贝
+var test1 = 1;
 function clone( target, srcObj ){
+    
     if( isUndefined(srcObj) ){
         clone( {}, target )
         return;
     }
 
-
     for( var prop in srcObj ){
         var value = srcObj[prop]
 
-        if( isObject(value) ){
+        if( isElement(value) ){ // 兼容ie8
+            target[prop] = value
+        }
+        else if( isObject(value) ){
             target[prop] = {}
             clone( target[prop], value )
         }
@@ -708,7 +719,7 @@ function addClass(el, className){
     }
 
     if( !hasClass(el, className) ){
-        el.className += ' ' + className
+        el.className = cName + ' ' + className
     }
     return el
 }
@@ -799,7 +810,7 @@ function type( param ){
 
 
 function isObject( param ){
-    return type(param) === 'object'
+    return param!=null && type(param) === 'object'
 }
 
 
@@ -811,6 +822,15 @@ function isUndefined( param ){
     return type(param) === 'undefined'
 }
 
+// 元素检测， 兼容ie8
+function isElement( param ){
+    return isObject(param) && (param+'').indexOf('Element') != -1
+}
+
+
+function log( param ){
+    window.console.log(param)
+}
 
 
 // ie9+ 根据属性自动初始化
