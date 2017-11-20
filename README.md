@@ -8,6 +8,4 @@
 ```
 
 ### 效果图
-![](date.png)
-![](date2.png)
-![](date3.png)
+<img src="./date.png" />
