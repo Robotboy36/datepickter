@@ -11,7 +11,7 @@ $redColor: #e81829;
     top: 0;
     bottom: 0;
     margin: 0;
-    z-index: 1000;
+    z-index: 100000;
     background: transparent;
 }
 
@@ -23,13 +23,13 @@ $redColor: #e81829;
     position: absolute;
     left: 0;
     top: 50px;
-    z-index: 1001;
+    z-index: 100001;
     border: 1px solid #e8e8e8;
     border-radius: 5px;
     overflow: hidden;
     background: #fff;
-    -ms-box-shadow: 0 0 10px #e8e8e8;
-    box-shadow: 0 0 10px #e8e8e8;
+    -ms-box-shadow: 0 0 10px #ccc;
+    box-shadow: 0 0 10px #ccc;
     font-family: '微软雅黑';
     font-size: 12px;
 
@@ -39,10 +39,7 @@ $redColor: #e81829;
     $itemMargin: 24px;
 
     &-body{
-        -ms-box-sizing: border-box;
-        -webkit-box-sizing: border-box;
         box-sizing: border-box;
-
         height: $bHei;
         padding-top: 20px;
         position: relative;
@@ -66,20 +63,21 @@ $redColor: #e81829;
             text-align: center;
             cursor: pointer;
             z-index: 10;
+            background: url(/Public/Js/Simuwang/components/date/css/arrow-left.png) no-repeat center center;
 
-            &:after{
-                content: '';
-                position: absolute;
-                width: 10px;
-                height: 10px;
-                left: 0;
-                top: 0;
-                right: 0;
-                bottom: 0;
-                margin: auto;
-                border-left: 1px solid #bbb;
-                border-top: 1px solid #bbb;
-            }
+            // &:after{
+            //     content: '';
+            //     position: absolute;
+            //     width: 10px;
+            //     height: 10px;
+            //     left: 0;
+            //     top: 0;
+            //     right: 0;
+            //     bottom: 0;
+            //     margin: auto;
+            //     border-left: 1px solid #bbb;
+            //     border-top: 1px solid #bbb;
+            // }
 
             &:active{
                 background-color: #fafafa;
@@ -87,22 +85,23 @@ $redColor: #e81829;
 
             &.arrow-left{
                 left: 15px;
-                &:after{                    
-                    -ms-transform: translate(3px, 0) rotate(-45deg);
-                    -webkit-transform: translate(3px, 0) rotate(-45deg);
-                    transform: translate(3px, 0) rotate(-45deg);
-                }
+                // &:after{                    
+                //     -ms-transform: translate(3px, 0) rotate(-45deg);
+                //     -webkit-transform: translate(3px, 0) rotate(-45deg);
+                //     transform: translate(3px, 0) rotate(-45deg);
+                // }
             }
             &.arrow-right{
                 right: 15px;
-                &:after{
-                    border: none;
-                    border-right: 1px solid #bbb;
-                    border-top: 1px solid #bbb;
-                    -ms-transform: translate(-3px, 0) rotate(45deg);
-                    -webkit-transform: translate(-3px, 0) rotate(45deg);
-                    transform: translate(-3px, 0) rotate(45deg);
-                }
+                background-image: url(/Public/Js/Simuwang/components/date/css/arrow-right.png);
+                // &:after{
+                //     border: none;
+                //     border-right: 1px solid #bbb;
+                //     border-top: 1px solid #bbb;
+                //     -ms-transform: translate(-3px, 0) rotate(45deg);
+                //     -webkit-transform: translate(-3px, 0) rotate(45deg);
+                //     transform: translate(-3px, 0) rotate(45deg);
+                // }
             }
         }
 
@@ -162,7 +161,7 @@ $redColor: #e81829;
 
         &-days{
             overflow: hidden;
-            color: #666666;
+            color: #444;
 
             li{
                 height: 22px;
@@ -190,6 +189,14 @@ $redColor: #e81829;
 
                 &.datepickter-cur{
                     outline: 1px dashed rgba($redColor, 0.3);
+                }              
+
+                &.disabled{
+                    background-color: #f9f9f9;
+                    border-radius: 0;
+                    color: #ccc;
+                    cursor: default;
+                    pointer-events: none;
                 }
             }
         }

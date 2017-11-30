@@ -31,8 +31,18 @@
     }
 })(typeof window === 'object' ? window:this, function( window, hasGlobal ){
 
+// 事件初始化
+// HTMLEvents：'abort', 'blur', 'change', 'error', 'focus', 'load', 'reset', 'resize', 'scroll', 'select', 'submit', 'unload'
+// UIEvents:  'DOMActivate', 'DOMFocusIn', 'DOMFocusOut', 'keydown', 'keypress', 'keyup'. 间接包含MouseEvents. 
+// MouseEvents: 'click', 'mousedown', 'mousemove', 'mouseout', 'mouseover', 'mouseup'. 
+// MutationEvents: 'DOMAttrModified', 'DOMNodeInserted', 'DOMNodeRemoved', 
+//             'DOMCharacterDataModified', 'DOMNodeInsertedIntoDocument', 
+//             'DOMNodeRemovedFromDocument', 'DOMSubtreeModified'. 
+
     
 
+
+// 构造器
 function SiMuDatePickter( opt ){
     this.maintemplate = 
         '<div class="simu-datepickter-body">'+
@@ -110,6 +120,10 @@ function SiMuDatePickter( opt ){
     }
 
     opt = opt || {}
+
+    this.setMinMaxDate( 'minTime', opt.minDate )
+    this.setMinMaxDate( 'maxTime', opt.maxDate )
+
     clone( this.options, opt )
     this.init()
 }
@@ -131,7 +145,7 @@ SiMuDatePickter.prototype = {
             input: null,
             time: 0,
             date: null,
-            datestr: this.formatDate( this.options.format )
+            datestr: this.formatDate()
         }        
         // 结束对象
         this.end = clone( {}, this.start )
@@ -209,11 +223,11 @@ SiMuDatePickter.prototype = {
                     break;
 
                 case 'left': 
-                    self.onMoveLeft.call(self);
+                    self.onMoveRight.call(self);
                     break;
                     
                 case 'right': 
-                    self.onMoveRight.call(self);
+                    self.onMoveLeft.call(self);
                     break;
 
                 case 'sure': 
@@ -229,15 +243,21 @@ SiMuDatePickter.prototype = {
 
 
     setInitValue: function(){
-        var value = this.options.initValue
+        var today = this.formatDate(new Date())
+        var value = this.options.initValue || today
         if( !value ){
             return;
         }
 
-        var dates = value.split( this.options.splitCh )
+        var dates = [value, value]
 
-        this.start.datestr = dates[0] || this.formatDate()
-        this.end.datestr = dates.length>1 && dates[1] || this.start.datestr
+        if( value.indexOf(this.options.splitCh) !== -1 ){
+            dates = value.split( this.options.splitCh )
+        }      
+        
+
+        this.start.datestr = dates[0] || today
+        this.end.datestr = dates[1] || today        
         
         // this.render()    
         var startdate = this.start.datestr.replace(/[^\d]/g, '/')
@@ -249,19 +269,25 @@ SiMuDatePickter.prototype = {
         this.end.date = new Date( enddate )
         this.end.time = this.end.date.getTime()
 
-        this.selectLimit(this.start.time, this.end.time)
+        this.selectLimit(this.start.time, this.end.time)        
+        this.setElValue( this.options.targetEl, [this.start.datestr, this.end.datestr].join(this.options.splitCh) )
     },
 
 
     // 选中天
     onSelectDay: function( target ){  
-        var format = this.options.format
         var start = this.start
         var end = this.end
 
         var time = target.getAttribute('data-time') - 0
         var d = new Date(time)
-        var datestr = this.formatDate( d, format )
+        var datestr = this.formatDate( d )
+
+        // 是否禁用
+        if( hasClass(target, 'disabled') ){
+            return false;
+        }
+
         
         this.clickcount ++
         if( this.clickcount === 1 ){
@@ -303,26 +329,41 @@ SiMuDatePickter.prototype = {
     onSure: function(){
         var callback = this.options.sure.callback
         var target = this.options.targetEl
+        var dates = [this.start.datestr, this.end.datestr]
 
         if( callback ){
-            callback( [this.start.datestr, this.end.datestr] )
+            callback( dates )
         }
 
         if( target ){
-            var datestr = this.start.datestr + this.options.splitCh + this.end.datestr
-
-            if( 'INPUT,TEXTAREA'.indexOf(target.tagName) !== -1 ){
-                target.setAttribute('value', datestr)
-                target.value = datestr
-            }else{
-                target.innerHTML = datestr
-            }
+            var datestr = dates.join(this.options.splitCh )
+            this.setElValue( target, datestr )
 
             target.setAttribute('data-start-date', this.start.datestr)
             target.setAttribute('data-end-date', this.end.datestr)
+            
+            if( 'createEvent' in document ){
+                var evObj = document.createEvent('HTMLEvents');
+                evObj.initEvent( 'change', true, false );
+                target.dispatchEvent(evObj);
+            }
+            else if( 'createEventObject' in document )
+            {
+                target.fireEvent('onchange');
+            }
         }
 
         this.hide()
+    },
+
+
+    setElValue: function( el, value ){        
+        if( 'INPUT,TEXTAREA'.indexOf(el.tagName) !== -1 ){
+            el.setAttribute('value', value)
+            el.value = value
+        }else{
+            el.innerHTML = value
+        }
     },
 
 
@@ -373,7 +414,7 @@ SiMuDatePickter.prototype = {
         list.moveleft = direction * this.moveWidth
 
         var lastLeft = left + list.moveleft
-
+        
         // 位移
         list.style.transition = 'transform 0.3s'
         list.style.transform = 'translate(' + list.moveleft + 'px, 0px)'
@@ -442,12 +483,21 @@ SiMuDatePickter.prototype = {
 
         var html = ''
         var firstMarLeft = week * this.options.itemWidth / 7
+        var minTime = this.options.minTime
+        var maxTime = this.options.maxTime
 
         for( var i=1; i<=days; i++ ){
             var curd = new Date(year, month, i)
+            var curTime = curd.getTime()
+            var disabled = minTime && curTime < minTime || maxTime && curTime > maxTime
+
+            var className = ' class="'
+            className += this.isToday( curd ) ? 'datepickter-cur ':''
+            className += disabled ? 'disabled':''
+            className += '" '
 
             html += '<li data-type="day" data-time="' + curd.getTime() + '"'
-            html += this.isToday( curd ) ? ' class="datepickter-cur"': ''
+            html += className
             html += i === 1 ? ' style="margin-left:' + firstMarLeft + 'px"': ''
             html += '>' + i + '</li>'
         }
@@ -545,22 +595,36 @@ SiMuDatePickter.prototype = {
 
         for(var i=0, len=items.length; i<len; i++){
             removeClass( items[i], 'datepickter-selecting' )
+            removeClass( items[i], 'datepickter-selected' )
         }
     },
 
 
     show: function(){
+        var height = window.innerHeight || window.screen.height
+        var width = window.innerWidth || window.screen.width
         var target = this.options.targetEl
+        var thiswidth = 660
+        var thisheight = 307
+
         if( target ){
             var pos = getPos( target )
             var scrollTop = 
                 document.body && document.body.scrollTop || 
                 document.documentElement && document.documentElement.scrollTop
 
-            var top = pos.top + target.offsetHeight + scrollTop
-                        
-            this.el.style.left = pos.left + 'px'
-            this.el.style.top = top + 'px'
+            var top = pos.top + pos.height + scrollTop
+            var left = pos.left
+
+            if( pos.top + thisheight + pos.height > height ){
+                top -=  thisheight + pos.height
+            }
+            
+            if( left + thiswidth + pos.width > width ){
+                left -=  thiswidth - pos.width
+            }
+                      
+            this.el.style.cssText = 'left:' + left + 'px; top:' + top + 'px'
         }
 
         this.maskel.style.display = 'block'
@@ -625,6 +689,16 @@ SiMuDatePickter.prototype = {
         }
 
         return format
+    },
+
+
+    setMinMaxDate: function( targetProp, value ){
+        if( isStr(value) ){            
+            this.options[targetProp] = +new Date( value.replace(/[^\d]/g, '/') )
+
+        }else if(isDate(value)){
+            this.options[targetProp] = value.getTime()
+        }
     }
 }
 
@@ -654,13 +728,27 @@ function listener( el, evtName, fn ){
 
 // 获取位置
 function getPos( el ){
+    var width = el.offsetWidth || parseInt(getStyle(el, 'width'))
+    var height = el.offsetHeight || parseInt(getStyle(el, 'height'))
+
     if( el.getBoundingClientRect ){
-        return el.getBoundingClientRect()
+        var pos = el.getBoundingClientRect()
+
+        return {
+            left: pos.left,
+            top: pos.top,
+            right: pos.right,
+            bottom: pos.bottom,
+            width: width,
+            height: height
+        }
     }
 
     var p = {
         left: 0,
-        top: 0
+        top: 0,
+        width: width,
+        height: height
     }
 
     while( el.tagName !== 'BODY' ){
@@ -791,6 +879,17 @@ function toggleClass(el, className){
 }
 
 
+// 
+function getStyle( el, styleName ){
+    if( window.getComputedStyle ){
+        return window.getComputedStyle(el)[styleName]
+
+    }else{
+        return el.currentStyle[styleName]
+    }
+}
+
+
 
 function random( len ){
     len = len || 8;
@@ -813,6 +912,9 @@ function isObject( param ){
     return param!=null && type(param) === 'object'
 }
 
+function isDate( param ){
+    return type(param) === 'date'
+}
 
 function isArray( param ){
     return type(param) === 'array'
@@ -822,28 +924,48 @@ function isUndefined( param ){
     return type(param) === 'undefined'
 }
 
+function isStr( param ){
+    return type(param) === 'string'
+}
+
 // 元素检测， 兼容ie8
 function isElement( param ){
     return isObject(param) && (param+'').indexOf('Element') != -1
 }
 
 
-function log( param ){
-    window.console.log(param)
-}
-
 
 // ie9+ 根据属性自动初始化
+// data-mindate: 日期下限
+// data-maxdate: 日期上限
+//  如果 data-maxdate的值为1， 则设置当前时间
+// data-start-date: 默认开始时间
+// data-end-date：默认结束时间
 if( document.querySelectorAll ){
     var eles = document.querySelectorAll('[simudatepickter]')
 
     for( var i=0; i<eles.length; i++ ){
         var el = eles[i]
         var format = el.getAttribute( 'data-format' ) || 'yyyy-MM-dd'
+        var splitCh = el.getAttribute( 'data-split' ) || '至'
+        var minDate = el.getAttribute( 'data-mindate' ) 
+        var maxDate = el.getAttribute( 'data-maxdate' ) 
+
+        // var startDate = el.getAttribute('data-start-date')
+        // var endDate = el.getAttribute('data-end-date')
+
+        if( maxDate === '1' ){
+            maxDate = new Date()
+        }
 
         el.datepickter = new SiMuDatePickter({
             targetEl: el,
-            format: format
+            format: format,
+            splitCh: splitCh,
+            minDate: minDate,
+            maxDate: maxDate
+            // startDate: startDate,
+            // endDate: endDate
             ,initValue: el.value || el.innerHTML
         })
         // listener( el, 'click', el.datepickter.show.bind(el.datepickter) )
